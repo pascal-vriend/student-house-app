@@ -5,18 +5,11 @@
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleHome" value="" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-          </set>
-        </option>
-      </GradleProjectSettings>
-      <GradleProjectSettings>
-        <option name="externalProjectPath" value="$PROJECT_DIR$/auth-service" />
-        <option name="modules">
-          <set>
-            <option value="$PROJECT_DIR$/auth-service" />
+            <option value="$PROJECT_DIR$/back-end" />
+            <option value="$PROJECT_DIR$/back-end/auth-service" />
           </set>
         </option>
       </GradleProjectSettings>
