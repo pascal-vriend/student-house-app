@@ -10,6 +10,18 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/back-end" />
             <option value="$PROJECT_DIR$/back-end/auth-service" />
+            <option value="$PROJECT_DIR$/back-end/eureka-server" />
+            <option value="$PROJECT_DIR$/back-end/finance-service" />
+            <option value="$PROJECT_DIR$/back-end/gateway" />
+            <option value="$PROJECT_DIR$/back-end/house-service" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/back-end/house-service" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/back-end/house-service" />
           </set>
         </option>
       </GradleProjectSettings>

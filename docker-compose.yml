@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  # The central database
+  db:
+    image: postgres:15
+    container_name: studenthouse-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: database
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
+    networks:
+      - studenthouse-network
+
+  # The Eureka Discovery Server
+  eureka-server:
+    build:
+      context: ./back-end/eureka-server
+      dockerfile: Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - studenthouse-network
+    volumes:
+      # Mount the finance-service's local code
+      - ./back-end/eureka-server:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # The API Gateway
+  api-gateway:
+    build:
+      context: ./back-end/gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - studenthouse-network
+    volumes:
+      # Mount the finance-service's local code
+      - ./back-end/gateway:/app
+
+  # The Auth Service
+  auth-service:
+    build: ./back-end/auth-service
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: ${DB_URL_AUTH}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    depends_on:
+      db:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - studenthouse-network
+    volumes:
+      - ./back-end/auth-service:/app
+
+  # The Finance Service
+  finance-service:
+    build: ./back-end/finance-service
+    container_name: finance-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: ${DB_URL_FINANCE}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_started
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - studenthouse-network
+    volumes:
+      # Mount the finance-service's local code
+      - ./back-end/finance-service:/app
+
+volumes:
+  pgdata:
+
+networks:
+  studenthouse-network:
+    driver: bridge

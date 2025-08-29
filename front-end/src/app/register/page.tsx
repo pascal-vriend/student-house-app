@@ -25,27 +25,21 @@ export default function RegisterPage() {
         setLoading(true);
 
         try {
-            const res = await fetch("http://localhost:8080/auth/register", {
+            const res = await fetch("https://localhost:8080/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
             });
 
-            let body: any;
-            const contentType = res.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-                body = await res.json();
-            } else {
-                body = await res.text();
-            }
+            const body = await res.json();
 
-            if (!res.ok) {
-                setError(typeof body === "string" ? body : body.error || "Registration failed");
+            if (!res.ok || body.status === "error") {
+                setError(body.message || "Registration failed");
                 setLoading(false);
                 return;
             }
 
-            setSuccess("Registration successful!");
+            setSuccess(body.message);
             setLoading(false);
 
             setTimeout(() => {
@@ -56,6 +50,7 @@ export default function RegisterPage() {
             setLoading(false);
         }
     }
+
 
     return (
         <main className="flex min-h-screen items-center justify-center bg-gray-100">

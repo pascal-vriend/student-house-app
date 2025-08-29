@@ -1,0 +1,2 @@
+CREATE DATABASE sh_auth;
+CREATE DATABASE sh_finance;

@@ -1,59 +1,108 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Header from "../components/Header";
-import { useFetchWithAuth } from '../lib/fetchWithAuth';
+import Header from "@/components/layout/Header";
+import Sidebar from "@/components/layout/Sidebar";
+import { useState, useEffect } from "react";
+import NoticesCard from "@/components/dashboard/noticesCard";
+import RoommateStatusCard from "@/components/dashboard/roommateStatusCard";
+import CookingCard from "@/components/dashboard/cookingCard";
+import {useApi} from "@/lib/useApi";
 
-export default function HomePage() {
-    const [message, setMessage] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+export default function Index() {
+    const { apiFetch } = useApi();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [expenses, setExpenses] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const fetchWithAuth = useFetchWithAuth();
 
-    async function fetchProtected() {
-        setLoading(true);
-        setError(null);
-        try {
-            const res = await fetchWithAuth('http://localhost:8080/api/protected', {
-                method: 'GET',
-            });
-
-            if (!res.ok) {
-                throw new Error('Failed to fetch protected data');
+    // Fetch expenses on mount
+    useEffect(() => {
+        async function fetchExpenses() {
+            try {
+                const res = await apiFetch("https://localhost:8080/api/protected", { method: "GET" });
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                const data = await res.json();
+                setExpenses(data);
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
             }
-
-            const data = await res.json();
-            setMessage(data.message);
-        } catch (err: any) {
-            setError(err.message || 'Unknown error');
-            setMessage(null);
-        } finally {
-            setLoading(false);
         }
-    }
+
+        fetchExpenses();
+    }, []);
+
+
+    // 🧪 Mock data for dashboard
+    const plannedActivities = [
+        { id: 1, title: "Groceries pickup", time: "Today 16:00", attendees: ["You", "Bob"] },
+        { id: 2, title: "Movie night", time: "Tonight 20:30", attendees: ["Alice", "Charlie"] },
+        { id: 3, title: "House cleaning", time: "Saturday 10:00", attendees: ["Everyone"] },
+    ];
+
+    const roommateStatus = [
+        { name: "Alice", home: true, avatar: "/avatars/alice.png", status: "Studying in her room" },
+        { name: "Bob", home: false, avatar: "/avatars/bob.png", status: "At work" },
+        { name: "Charlie", home: true, avatar: "/avatars/charlie.png", status: "Cooking in the kitchen" },
+    ];
+
+    const cookingToday = {
+        cook: "Charlie",
+        meal: "Pasta with pesto",
+        time: "18:30",
+        avatar: "/avatars/charlie.png",
+    };
+
+    const dinnerAttendees = [
+        { name: "You", avatar: "/avatars/you.png", status: "Joining" },
+        { name: "Bob", avatar: "/avatars/bob.png", status: "Maybe" },
+        { name: "Charlie", avatar: "/avatars/charlie.png", status: "Cooking" },
+    ];
 
     return (
-        <main className="min-h-screen bg-gray-50">
-            <Header />
-            <section className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Welcome to the Student House</h2>
-                <ul className="space-y-2 mb-6">
-                    <li className="bg-white p-4 rounded-lg shadow">🍽️ Meal planning</li>
-                    <li className="bg-white p-4 rounded-lg shadow">🧹 Cleaning tasks</li>
-                    <li className="bg-white p-4 rounded-lg shadow">🎉 Activities and events</li>
-                </ul>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+            <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+            <div className="flex">
+                <Sidebar isOpen={sidebarOpen} />
+                <main className="flex-1 p-4 lg:p-8">
+                    <div className="grid grid-cols-3 grid-rows-3 gap-6">
+                        {/* CookingCard */}
+                        <div className="col-span-2 row-span-2">
+                            <CookingCard cookingToday={cookingToday} attendees={dinnerAttendees} />
+                        </div>
 
-                <button
-                    onClick={fetchProtected}
-                    disabled={loading}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                    {loading ? 'Loading...' : 'Fetch Protected Data'}
-                </button>
+                        {/* NoticesCard */}
+                        <div className="col-span-1">
+                            <NoticesCard activities={plannedActivities} />
+                        </div>
 
-                {message && <p className="mt-4 text-green-700 font-semibold">{message}</p>}
-                {error && <p className="mt-4 text-red-700 font-semibold">{error}</p>}
-            </section>
-        </main>
+                        {/* RoommateStatusCard */}
+                        <div className="col-span-1">
+                            <RoommateStatusCard roommates={roommateStatus} />
+                        </div>
+                    </div>
+
+                    {/* Expenses Section */}
+                    <div className="mt-8 p-4 bg-white dark:bg-slate-800 shadow rounded-2xl">
+                        <h2 className="text-lg font-semibold mb-3">Expenses</h2>
+                        {loading && <p>Loading...</p>}
+                        {error && <p className="text-red-500">Error: {error}</p>}
+                        {!loading && !error && (
+                            <ul className="space-y-2">
+                                {JSON.stringify(expenses)}
+                            </ul>
+                        )}
+                    </div>
+                </main>
+            </div>
+
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+        </div>
     );
 }

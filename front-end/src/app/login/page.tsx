@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -19,7 +19,7 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            const res = await fetch("http://localhost:8080/auth/login", {
+            const res = await fetch("https://localhost:8080/auth/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
@@ -35,7 +35,6 @@ export default function LoginPage() {
             }
 
             setAccessToken(body.accessToken);
-
             setLoading(false);
             router.push("/");
         } catch (err) {
@@ -45,7 +44,7 @@ export default function LoginPage() {
     }
 
     function handleGoogleLogin() {
-        window.location.href = "http://localhost:8080/oauth2/authorization/google";
+        window.location.href = "https://localhost:8080/oauth2/authorization/google";
     }
 
     return (
